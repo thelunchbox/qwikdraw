@@ -42,6 +42,9 @@ window.addEventListener('load', e => {
         canvas.restore();
     };
     
+    // we want to allow draws to be nested inside other draws
+    qd.nest = __initialize;
+    
     qd.path = points => {
         const [first, ...others] = points;
         context.moveTo(first[0], first[1]);
@@ -104,7 +107,17 @@ window.addEventListener('load', e => {
     qd.opacity = alpha => {
         context.globalAlpha = alpha;
         return qd;
-    }
+    };
+    
+    qd.text = (text, x, y, { stroke: false, fill: true } ) => {
+        if (stroke) {
+            context.strokeText(text, x, y);
+        }
+        if (fill) {
+            context.fillText(text, x, y);
+        }
+        return qd;
+    };
     
     // usage:
     // qd(c => c.rect(0,0,10,10).fill('red'));
