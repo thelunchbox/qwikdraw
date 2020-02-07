@@ -27,7 +27,20 @@ window.addEventListener('load', e => {
     setTimeout(resizeCanvas, 10);
     const context = canvas.getContext('2d');
     
+    const TEXT_ALIGN = {
+        LEFT: 'left',
+        CENTER: 'center',
+        RIGHT: 'right',
+    };
+    
+    const TEXT_BASELINE = {
+        TOP: 'top',
+        MIDDLE: 'middle',
+        BOTTOM: 'bottom',
+    };
+    
     let fp = null;
+    let storedText = null;
     const qd = {};
     const IMAGE_CACHE = {};
     
@@ -46,6 +59,7 @@ window.addEventListener('load', e => {
     
     const __initialize = operation => {
         fp = null;
+        storedText = null;
         canvas.save();
         try {
         	operation(qd);
@@ -55,6 +69,8 @@ window.addEventListener('load', e => {
         canvas.restore();
         
         this.loadImages = images => Promise.all(images.map(img => loadImage(img));
+        this.TEXT_ALIGN = TEXT_ALIGN;
+        this.TEXT_BASELINE = TEXT_BASELINE;
     };
                                                 
     // await qd.loadImages([{ name: 'hi', path: 'hi.png' }]);
@@ -75,6 +91,22 @@ window.addEventListener('load', e => {
             const [x, y] = fp;
             context.lineTo(x, y);
         }
+        return qd;
+    };
+    
+    qd.start = () => {
+        context.beginPath();
+        return qd;
+    };
+    
+    qd.stop = () => {
+        context.closePath();
+        return qd;
+    };
+    
+    qd.image = (img, x, y, w, h) => {
+        const i = IMAGE_CACHE[img];
+        context.drawImage(i, x, y, w, h);
         return qd;
     };
     
@@ -112,13 +144,23 @@ window.addEventListener('load', e => {
         context.strokeStyle = color;
         context.lineWidth = width;
         context.setLineDash(dashPattern);
-        context.stroke();
+        if (storedText) {
+            context.strokeText(storedText.text, storedText.x, storedText.y);
+            storedText = null;
+        } else {
+            context.stroke();
+        }
         return qd;
     };
     
     qd.fill = (color) => {
         context.fillStyle = color;
-        context.fill();
+        if (storedText) {
+            context.fillText(storedText.text, storedText.x, storedText.y);
+            storedText = null;
+        } else {
+            context.fill();
+        }
         return qd;
     };
     
@@ -137,18 +179,21 @@ window.addEventListener('load', e => {
         return qd;
     };
     
-    qd.text = (text, x, y, { stroke: false, fill: true } ) => {
-        if (stroke) {
-            context.strokeText(text, x, y);
-        }
-        if (fill) {
-            context.fillText(text, x, y);
-        }
+    qd.text = (text, x, y) => {
+        storedText = { text, x, y};
+        return qd;
+    };
+    
+    qd.font = (font, size = 16, { align = TEXT_ALIGN.CENTER, baseline = TEXT_BASELINE.MIDDLE }) {
+        context.font = `${size}pt ${font}`;
+        context.textAlign = align;
+        context.textBaseline = baseline;
         return qd;
     };
     
     // usage:
     // qd(c => c.rect(0,0,10,10).fill('red'));
+    // qd(c => c.text('hi', 100, 100).fill('blue'));
     
     window.qd = __initialize;
     
