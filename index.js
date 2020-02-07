@@ -43,6 +43,7 @@ window.addEventListener('load', e => {
     let storedText = null;
     const qd = {};
     const IMAGE_CACHE = {};
+    const SPRITE_CACHE = {};
     
     const loadImage = ({name, path}) => new Promise(resolve => {
         const i = new Image();
@@ -57,6 +58,19 @@ window.addEventListener('load', e => {
         };
     });
     
+    const loadSpriteSheet = (name, w, h, map) => {
+        // name is the name of the image from the IMAGE_CACHE
+        // w and h are the dimensions of the sprite
+        // map is an object like
+        // { state_name: [[x, y, count], ...] }
+        // x and y are the coordinates on the sprite sheet for this frame
+        // count is the number of total frames for the entire state animation
+        // if count is null, it's assumed to be 1
+        // if count is 0, it means the animation does not loop (can only be the last frame)
+        // if count is anything else, it's the number of frames to spend on this animation frame
+        SPRITE_CACHE[name] = { w, h, map };
+    };
+    
     const __initialize = operation => {
         fp = null;
         storedText = null;
@@ -68,6 +82,7 @@ window.addEventListener('load', e => {
         }
         canvas.restore();
         
+        // images is an array of objects like {name, path}
         this.loadImages = images => Promise.all(images.map(img => loadImage(img));
         this.TEXT_ALIGN = TEXT_ALIGN;
         this.TEXT_BASELINE = TEXT_BASELINE;
@@ -108,6 +123,36 @@ window.addEventListener('load', e => {
         const i = IMAGE_CACHE[img];
         context.drawImage(i, x, y, w, h);
         return qd;
+    };
+    
+    qd.sprite = (name, x, y, state, frame) => {
+        const i = IMAGE_CACHE[name];
+        const s = SPRITE_CACHE[name];
+        // get the source coordinates for this frame of the sprite
+        const stateConfig = s[state];
+        // we could probably compute this when the state is loaded...
+        const totalFrameCount = stateConfig.reduce((agg, [x, y, count = 1]) => agg + count, 0);
+        // this too... or just let them define it...
+        const loop = stateConfig.slice(-1)[2] != 0;
+        let result;
+        if (frame > totalFrameCount)
+            // if we're looping
+            if (loop) {
+                // wrap around the end
+                let f = frame % totalFrameCount;
+                // find which frame of animation we're on based on each frame count
+                result = stateConfig.find([x, y, count = 1] => {
+                    f -= count;
+                    // we found the frame when we go below 0
+                    return f < 0;
+                });
+            } else {
+                // if not looping, take the last frame
+                result = stateConfig.slice(-1);
+            }
+        }
+        const [sx, sy] = result;
+        context.drawImage(i, sx, sy, s.w, s.h, x, y, s.w, s.h);
     };
     
     qd.vector = (x, y, r, angle) => {
