@@ -284,9 +284,9 @@ window.addEventListener('load', e => {
   };
 
   qd.font = (font, size = 16, {
-    align = TEXT_ALIGN.CENTER,
-    baseline = TEXT_BASELINE.MIDDLE
-  }) => {
+    align = TEXT_ALIGN.LEFT,
+    baseline = TEXT_BASELINE.TOP
+  } = {}) => {
     context.font = `${size}pt ${font}`;
     context.textAlign = align;
     context.textBaseline = baseline;
