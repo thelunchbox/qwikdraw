@@ -263,6 +263,14 @@ window.addEventListener('load', e => {
     return qd;
   };
 
+  qd.shadow = ({ color = '#000', width = 1, x = 0, y = 0 } = {}) => {
+    context.shadowColor = color;
+    context.shadowBlur = width;
+    context.shadowOffsetX = x;
+    context.shadowOffsetY = y;
+    return qd;
+  };
+
   qd.translate = (x, y) => {
     context.translate(x, y);
     return qd;
