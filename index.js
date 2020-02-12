@@ -106,6 +106,7 @@ window.addEventListener('load', e => {
     fp = null;
     storedText = null;
     context.save();
+    context.beginPath();
     try {
       const paths = openPaths;
       operation(qd);
@@ -115,13 +116,12 @@ window.addEventListener('load', e => {
     } catch (ex) {
       console.error('Error while drawing:', ex);
     }
+    context.closePath();
     context.restore();
 
     // images is an array of objects like {name, path}
     this.loadImages = images => Promise.all(images.map(img => loadImage(img)));
     this.loadSpriteSheet = loadSpriteSheet;
-    this.TEXT_ALIGN = TEXT_ALIGN;
-    this.TEXT_BASELINE = TEXT_BASELINE;
   };
 
   // await qd.loadImages([{ name: 'hi', path: 'hi.png' }]);
@@ -240,10 +240,14 @@ window.addEventListener('load', e => {
 
   qd.stroke = (color, {
     width = 1,
-    dashPattern = []
+    dashPattern = [],
+    lineCap = 'butt', // butt|round|square
+    lineJoin = 'miter' // miter|bevel|round
   } = {}) => {
     context.strokeStyle = color;
     context.lineWidth = width;
+    context.lineCap = lineCap;
+    context.lineJoin = lineJoin;
     context.setLineDash(dashPattern);
     if (storedText) {
       context.strokeText(storedText.text, storedText.x, storedText.y);
@@ -298,6 +302,26 @@ window.addEventListener('load', e => {
     context.font = `${size}pt ${font}`;
     context.textAlign = align;
     context.textBaseline = baseline;
+    return qd;
+  };
+
+  qd.pixely = () => {
+    context.imageSmoothingEnabled = false;
+    return qd;
+  };
+
+  // globalCompositeOperations
+  // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+
+  qd.clip = () => {
+    // The new shape is drawn only where both the new shape and the destination canvas overlap. Everything else is made transparent.
+    context.globalCompositeOperation = 'source-in';
+    return qd;
+  };
+
+  qd.subtract = () => {
+    // The existing content is kept where it doesn't overlap the new shape.
+    context.globalCompositeOperation = 'destination-out';
     return qd;
   };
 
