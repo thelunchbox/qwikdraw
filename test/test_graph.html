@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <script src="../index.js"></script>
+    <script src="./testData.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+      let data;
+      const random = n => Math.floor(Math.random() * n);
+      const draw = () => {
+        qd(c => c.clear());
+
+        data.nodes.forEach(node =>
+          qd(c => {
+            node.x = node.x || random(c.width);
+            node.y = node.y || random(c.height);
+            c.translate(node.x, node.y)
+              .circle(0, 0, 25)
+              .fill('#e43')
+              .font('Arial', 10, { align: 'center', baseline: 'middle'})
+              .text(node.fields.displayName, 0, 0)
+              .stroke('#333', { width: 5 })
+              .fill('#fff')
+          })
+        );
+
+        window.requestAnimationFrame(draw);
+      };
+    
+      window.qdReady(() => {
+        data = JSON.parse(graphDataString);
+        window.requestAnimationFrame(draw);
+      });
+    
+    </script>
+  </body>
+</html>

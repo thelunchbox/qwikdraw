@@ -51,6 +51,10 @@ window.addEventListener('load', e => {
       resizeCanvas();
     });
 
+    canvas.addEventListener('mousemove', event => {
+
+    });
+
     setTimeout(resizeCanvas, 10);
   }
 
@@ -72,7 +76,14 @@ window.addEventListener('load', e => {
   let storedText = null;
   let openPaths = 0;
 
-  const qd = {};
+  const qd = {
+    get width() {
+      return canvas.width;
+    },
+    get height() {
+      return canvas.height;
+    },
+  };
   const IMAGE_CACHE = {};
   const SPRITE_CACHE = {};
 
@@ -128,6 +139,9 @@ window.addEventListener('load', e => {
 
   // we want to allow draws to be nested inside other draws
   qd.nest = __initialize;
+
+  // omg do this
+  // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/isPointInPath
 
   qd.path = points => {
     storedText = null;
