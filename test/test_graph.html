@@ -8,6 +8,11 @@
 
       let data;
       const random = n => Math.floor(Math.random() * n);
+
+      const simulation = d3.forceSimulation()
+        .force('charge', d3.forceManyBody().strength(-20))
+        .force('center', d3.forceCenter(500, 500));
+
       const draw = () => {
         qd(c => c.clear());
 
